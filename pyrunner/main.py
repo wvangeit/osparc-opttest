@@ -3,6 +3,8 @@ def main():
 
     import bluepyopt.ephys as ephys
 
+    print("Setting up simple cell model")
+
     morph = ephys.morphologies.NrnFileMorphology('simple.swc')
 
     somatic_loc = ephys.locations.NrnSeclistLocation(
@@ -43,7 +45,46 @@ def main():
         mechs=[hh_mech],
         params=[cm_param, gnabar_param, gkbar_param])
 
+    print("#############################")
+    print("Simple neuron has been set up")
+    print("#############################")
+
     print(simple_cell)
+
+    print("Setting up stimulation protocols"
+    soma_loc=ephys.locations.NrnSeclistCompLocation(
+        name='soma',
+        seclist_name='somatic',
+        sec_index=0,
+        comp_x=0.5)
+
+    sweep_protocols=[]
+
+    for protocol_name, amplitude in [('step1', 0.01), ('step2', 0.05)]:
+        stim=ephys.stimuli.NrnSquarePulse(
+            step_amplitude=amplitude,
+            step_delay=100,
+            step_duration=50,
+            location=soma_loc,
+            total_duration=200)
+        rec=ephys.recordings.CompRecording(
+            name='%s.soma.v' % protocol_name,
+            location=soma_loc,
+            variable='v')
+        protocol=ephys.protocols.SweepProtocol(protocol_name, [stim], [rec])
+        sweep_protocols.append(protocol)
+    twostep_protocol=ephys.protocols.SequenceProtocol(
+        'twostep', protocols=sweep_protocols)
+
+    print("#######################################")
+    print("Stimulation protocols have been set up ")
+    print("#######################################")
+
+    print(twostep_protocol)
+
+
+    nrn=ephys.simulators.NrnSimulator()
+
 
 
 if __name__ == '__main__':
