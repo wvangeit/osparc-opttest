@@ -81,6 +81,7 @@ def main():
 
     print(twostep_protocol)
 
+    print('Setting up objectives')
     efel_feature_means = {
         'step1': {
             'Spikecount': 1}, 'step2': {
@@ -110,6 +111,31 @@ def main():
     print("############################")
     print("Objectives have been set up ")
     print("############################")
+
+    print('Setting up fitness calculator')
+
+    score_calc = ephys.objectivescalculators.ObjectivesCalculator(objectives)
+
+    nrn = ephys.simulators.NrnSimulator()
+
+    cell_evaluator = ephys.evaluators.CellEvaluator(
+        cell_model=simple_cell,
+        param_names=['gnabar_hh', 'gkbar_hh'],
+        fitness_protocols={twostep_protocol.name: twostep_protocol},
+        fitness_calculator=score_calc,
+        sim=nrn)
+
+    print("####################################")
+    print("Fitness calculator have been set up ")
+    print("####################################")
+
+    print('Running test evaluation:')
+    default_params = {'gnabar_hh': 0.1, 'gkbar_hh': 0.03}
+    print(cell_evaluator.evaluate_with_dicts(default_params))
+
+    print("###############################")
+    print("Test evaluation was successful ")
+    print("###############################")
 
 
 if __name__ == '__main__':
