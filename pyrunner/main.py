@@ -1,6 +1,10 @@
 def main():
     print("Starting simplecell")
 
+    import os
+    print('I am running in the directory: ', os.getcwd())
+    print(os.listdir('.'))
+
     import bluepyopt.ephys as ephys
 
     print("Setting up simple cell model")
