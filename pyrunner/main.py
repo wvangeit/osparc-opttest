@@ -10,7 +10,7 @@ def main():
 
     print("Setting up simple cell model")
 
-    morph = ephys.morphologies.NrnFileMorphology('pyrunner/simple.swc')
+    morph = ephys.morphologies.NrnFileMorphology('simple.swc')
 
     somatic_loc = ephys.locations.NrnSeclistLocation(
         'somatic', seclist_name='somatic')
