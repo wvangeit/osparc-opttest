@@ -4,6 +4,7 @@ def main():
     import os
     print('I am running in the directory: ', os.getcwd())
     print(os.listdir('.'))
+    print(os.listdir('..'))
 
     import bluepyopt.ephys as ephys
 
