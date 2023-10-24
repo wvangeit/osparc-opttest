@@ -51,29 +51,28 @@ def main():
 
     print(simple_cell)
 
-    print("Setting up stimulation protocols"
-    soma_loc=ephys.locations.NrnSeclistCompLocation(
-        name='soma',
-        seclist_name='somatic',
-        sec_index=0,
-        comp_x=0.5)
+    print("Setting up stimulation protocols")
+    soma_loc = ephys.locations.NrnSeclistCompLocation(name='soma',
+                                                      seclist_name='somatic',
+                                                      sec_index=0,
+                                                      comp_x=0.5)
 
-    sweep_protocols=[]
+    sweep_protocols = []
 
     for protocol_name, amplitude in [('step1', 0.01), ('step2', 0.05)]:
-        stim=ephys.stimuli.NrnSquarePulse(
+        stim = ephys.stimuli.NrnSquarePulse(
             step_amplitude=amplitude,
             step_delay=100,
             step_duration=50,
             location=soma_loc,
             total_duration=200)
-        rec=ephys.recordings.CompRecording(
+        rec = ephys.recordings.CompRecording(
             name='%s.soma.v' % protocol_name,
             location=soma_loc,
             variable='v')
-        protocol=ephys.protocols.SweepProtocol(protocol_name, [stim], [rec])
+        protocol = ephys.protocols.SweepProtocol(protocol_name, [stim], [rec])
         sweep_protocols.append(protocol)
-    twostep_protocol=ephys.protocols.SequenceProtocol(
+    twostep_protocol = ephys.protocols.SequenceProtocol(
         'twostep', protocols=sweep_protocols)
 
     print("#######################################")
@@ -82,9 +81,35 @@ def main():
 
     print(twostep_protocol)
 
+    efel_feature_means = {
+        'step1': {
+            'Spikecount': 1}, 'step2': {
+            'Spikecount': 5}}
 
-    nrn=ephys.simulators.NrnSimulator()
+    objectives = []
 
+    for protocol in sweep_protocols:
+        stim_start = protocol.stimuli[0].step_delay
+        stim_end = stim_start + protocol.stimuli[0].step_duration
+        for efel_feature_name, mean in efel_feature_means[protocol.name].items(
+        ):
+            feature_name = '%s.%s' % (protocol.name, efel_feature_name)
+            feature = ephys.efeatures.eFELFeature(
+                feature_name,
+                efel_feature_name=efel_feature_name,
+                recording_names={'': '%s.soma.v' % protocol.name},
+                stim_start=stim_start,
+                stim_end=stim_end,
+                exp_mean=mean,
+                exp_std=0.05 * mean)
+            objective = ephys.objectives.SingletonObjective(
+                feature_name,
+                feature)
+            objectives.append(objective)
+
+    print("############################")
+    print("Objectives have been set up ")
+    print("############################")
 
 
 if __name__ == '__main__':
