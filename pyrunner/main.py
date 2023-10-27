@@ -1,12 +1,13 @@
+import os
+import json
+
+import bluepyopt.ephys as ephys
+
+
 def main():
     print("Starting simplecell")
 
-    import os
     print('I am running in the directory: ', os.getcwd())
-    print(os.listdir('.'))
-    print(os.listdir('..'))
-
-    import bluepyopt.ephys as ephys
 
     print("Setting up simple cell model")
 
@@ -136,7 +137,11 @@ def main():
 
     print('Running test evaluation:')
     default_params = {'gnabar_hh': 0.1, 'gkbar_hh': 0.03}
-    print(cell_evaluator.evaluate_with_dicts(default_params))
+    scores = cell_evaluator.evaluate_with_dicts(default_params)
+    print(f'Scores: {scores}')
+
+    with open('/output/output_1/scores.json', 'w') as scores_file:
+        json.dump(scores, scores_file)
 
     print("###############################")
     print("Test evaluation was successful ")
