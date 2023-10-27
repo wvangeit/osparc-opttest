@@ -1,5 +1,6 @@
 import os
 import json
+import pathlib
 
 import bluepyopt.ephys as ephys
 
@@ -140,7 +141,9 @@ def main():
     scores = cell_evaluator.evaluate_with_dicts(default_params)
     print(f'Scores: {scores}')
 
-    with open('/outputs/output_1/scores.json', 'w') as scores_file:
+    output1_dir = pathlib.Path(
+        os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
+    with open(output1_dir / 'scores.json', 'w') as scores_file:
         json.dump(scores, scores_file)
 
     print("###############################")
