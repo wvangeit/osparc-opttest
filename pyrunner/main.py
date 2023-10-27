@@ -140,7 +140,7 @@ def main():
     scores = cell_evaluator.evaluate_with_dicts(default_params)
     print(f'Scores: {scores}')
 
-    with open('/output/output_1/scores.json', 'w') as scores_file:
+    with open('/outputs/output_1/scores.json', 'w') as scores_file:
         json.dump(scores, scores_file)
 
     print("###############################")
