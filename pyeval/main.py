@@ -33,7 +33,7 @@ def main():
     observer.start()
 
     while True:
-        print("Waiting for input param file changes")
+        print("Waiting for input param file changes", flush=True)
         time.sleep(10)
 
     print("Stopping observer")
