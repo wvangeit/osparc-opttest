@@ -1,22 +1,71 @@
 import os
 import json
 import pathlib
+import time
 
 import bluepyopt.ephys as ephys
 
+import watchdog
+import watchdog.events
+import watchdog.observers
+
 
 def main():
-    print("Starting simplecell")
-
-    print('I am running in the directory: ', os.getcwd())
-
     input2_dir = pathlib.Path(
         os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
     output1_dir = pathlib.Path(
         os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
-
     print(f'Input 1 directory: {input2_dir}')
     print(f'Output 1 directory: {output1_dir}')
+
+    input_params_path = input2_dir / 'params.json'
+    output_scores_path = output1_dir / 'scores.json'
+
+    input_handler = InputHandler()
+    input_handler.input_params_path = input_params_path
+    input_handler.output_scores_path = output_scores_path
+    observer = watchdog.observers.Observer()
+    observer.schedule(input_handler, path=input_params_path, recursive=False)
+    observer.start()
+
+    try:
+        while True:
+            print("Waiting for input param file changes")
+            time.sleep(10)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+
+class InputHandler(watchdog.events.FileSystemEventHandler):
+
+    def on_modified(self, event):
+        process_inputs(self.input_params_path, self.output_scores_path)
+
+    def on_created(self, event):
+        process_inputs(self.input_params_path, self.output_scores_path)
+
+
+def process_inputs(input_params_path, output_scores_path):
+    """Process new inputs"""
+
+    print('Fetching input parameters:')
+    with open(input_params_path, 'r') as input_params_file:
+        input_params = json.load(input_params_file)
+    print(f'Parameters found are: {input_params}')
+
+    scores = run_eval(input_params)
+
+    with open(output_scores_path, 'w') as scores_file:
+        json.dump(scores, scores_file)
+
+
+def run_eval(input_params):
+    """Run evaluation with parameters"""
+    print("Starting simplecell")
+
+    print('I am running in the directory: ', os.getcwd())
+
     print("Setting up simple cell model")
 
     morph = ephys.morphologies.NrnFileMorphology('simple.swc')
@@ -143,17 +192,11 @@ def main():
     print("Fitness calculator have been set up ")
     print("####################################")
 
-    print('Fetching input parameters:')
-    with open(input2_dir / 'params.json', 'r') as input_params_file:
-        input_params = json.load(input_params_file)
-    print(f'Parameters found are: {input_params}')
-
     print('Running test evaluation:')
     scores = cell_evaluator.evaluate_with_dicts(input_params)
     print(f'Scores: {scores}')
 
-    with open(output1_dir / 'scores.json', 'w') as scores_file:
-        json.dump(scores, scores_file)
+    return scores
 
     print("###############################")
     print("Test evaluation was successful ")
