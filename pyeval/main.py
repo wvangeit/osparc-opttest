@@ -26,18 +26,25 @@ def main():
     input_handler.output_scores_path = output_scores_path
     observer = watchdog.observers.Observer()
     observer.schedule(input_handler, path=input_params_path, recursive=False)
-    '''
 
+    print("Starting observer")
     observer.start()
 
+    print("Stopping observer")
+    observer.stop()
+
+    print("Joining observer")
+    observer.join
+
+    '''
     try:
         while True:
             print("Waiting for input param file changes")
             time.sleep(10)
     except KeyboardInterrupt:
         observer.stop()
-    observer.join()
     '''
+    # observer.join()
 
 
 class InputHandler(watchdog.events.FileSystemEventHandler):
