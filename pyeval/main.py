@@ -10,6 +10,13 @@ def main():
 
     print('I am running in the directory: ', os.getcwd())
 
+    input2_dir = pathlib.Path(
+        os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
+    output1_dir = pathlib.Path(
+        os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
+
+    print(f'Input 1 directory: {input2_dir}')
+    print(f'Output 1 directory: {output1_dir}')
     print("Setting up simple cell model")
 
     morph = ephys.morphologies.NrnFileMorphology('simple.swc')
@@ -136,13 +143,15 @@ def main():
     print("Fitness calculator have been set up ")
     print("####################################")
 
+    print('Fetching input parameters:')
+    with open(input2_dir / 'params.json', 'r') as input_params_file:
+        input_params = json.load(input_params_file)
+    print(f'Parameters found are: {input_params}')
+
     print('Running test evaluation:')
-    default_params = {'gnabar_hh': 0.1, 'gkbar_hh': 0.03}
-    scores = cell_evaluator.evaluate_with_dicts(default_params)
+    scores = cell_evaluator.evaluate_with_dicts(input_params)
     print(f'Scores: {scores}')
 
-    output1_dir = pathlib.Path(
-        os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
     with open(output1_dir / 'scores.json', 'w') as scores_file:
         json.dump(scores, scores_file)
 
