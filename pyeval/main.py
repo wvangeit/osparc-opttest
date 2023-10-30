@@ -26,6 +26,8 @@ def main():
     input_handler.output_scores_path = output_scores_path
     observer = watchdog.observers.Observer()
     observer.schedule(input_handler, path=input_params_path, recursive=False)
+    '''
+
     observer.start()
 
     try:
@@ -35,6 +37,7 @@ def main():
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+    '''
 
 
 class InputHandler(watchdog.events.FileSystemEventHandler):
