@@ -25,10 +25,16 @@ def main():
     input_handler.input_params_path = input_params_path
     input_handler.output_scores_path = output_scores_path
     observer = watchdog.observers.Observer()
-    observer.schedule(input_handler, path=input_params_path, recursive=False)
+
+    print(f"Creating observer for {input_params_path}")
+    observer.schedule(input_handler, path=input_params_path, recursive=True)
 
     print("Starting observer")
     observer.start()
+
+    while True:
+        print("Waiting for input param file changes")
+        time.sleep(10)
 
     print("Stopping observer")
     observer.stop()
@@ -38,9 +44,6 @@ def main():
 
     '''
     try:
-        while True:
-            print("Waiting for input param file changes")
-            time.sleep(10)
     except KeyboardInterrupt:
         observer.stop()
     '''
@@ -50,9 +53,11 @@ def main():
 class InputHandler(watchdog.events.FileSystemEventHandler):
 
     def on_modified(self, event):
+        print(f"Detected modification of inputs at {self.input_params_path}")
         process_inputs(self.input_params_path, self.output_scores_path)
 
     def on_created(self, event):
+        print(f"Detected creation of inputs at {self.input_params_path}")
         process_inputs(self.input_params_path, self.output_scores_path)
 
 
