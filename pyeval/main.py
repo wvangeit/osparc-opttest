@@ -15,8 +15,12 @@ def main():
         os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
     output1_dir = pathlib.Path(
         os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
-    print(f'Input 1 directory: {input2_dir}')
+    print(f'Input 2 directory: {input2_dir}')
     print(f'Output 1 directory: {output1_dir}')
+
+    print("Files in input: ")
+    for path in input2_dir.rglob("*"):
+        print(path.resolve(), flush=True)
 
     input_params_path = input2_dir / 'params.json'
     output_scores_path = output1_dir / 'scores.json'
