@@ -24,7 +24,7 @@ class EvalEngine:
     def __init__(self):
         """Constructor"""
 
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
         self.output1_dir = pathlib.Path(
             os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
         self.input2_dir = pathlib.Path(
@@ -42,58 +42,94 @@ class EvalEngine:
 
         self.create_engine_file()
 
-        # watch_master_file()
+        self.watch_master_file()
 
     def create_engine_file(self):
         """Create engine file"""
 
         engine_dict = {
-            'id': str(self.id),
+            'id': self.id,
             'status': self.status
         }
 
         with open(self.engine_file_path, 'w') as engine_file:
             json.dump(engine_dict, engine_file, indent=2)
 
+    def read_master_dict(self):
+        with open(self.master_file_path) as master_file:
+            master_dict = json.load(master_file)
 
-def watch_master_file(self):
-    input_handler = InputHandler()
-    input_handler.input_params_path = self.master_file_path
-    input_handler.output_scores_path = self.engine_file_path
-    observer = watchdog.observers.Observer()
+    def watch_master_file(self):
 
-    print(f"Creating observer for {input_handler.input_params_path}")
-    observer.schedule(
-        input_handler,
-        path=input_handler.input_params_path,
-        recursive=True)
+        while True:
+            print(f'Engine {self.id}: Checking for master file at '
+                  f'{self.master_file_path}')
+            if self.master_file_path.exists():
+                master_dict = self.read_master_dict()
+                if self.id in master_dict['engines']:
+                    task_dict = master_dict['engines'][self.id]['task']
+                    print(f"Engine {self.id}: Received task: {task_dict}")
+                else:
+                    print(f"Engine {self.id}: Didn't find any tasks for me")
 
-    print("Starting observer")
-    observer.start()
+            time.sleep(10)
 
-    while True:
-        print(
-            "Waiting for input param file changes at "
-            f"{input_handler.input_params_path}",
-            flush=True)
-        time.sleep(10)
+        '''
+        if self.engine_fn.exists():
+            engine_info = self.get_engine_info(engine_fn)
+            if engine_info['id'] not in self.engine_ids:
+                self.register_engine(engine_info)
 
-    print("Stopping observer")
-    observer.stop()
+            if engine_info['status'] == 'Ready' and \
+                    not self.engine_submitted[engine_info['id']]:
+                self.create_run_task(engine_info)
+            elif engine_info['status'] == 'Finished':
+                self.get_payload(engine_info['id'])
+        '''
 
-    print("Joining observer")
-    observer.join
 
-
+'''
 class InputHandler(watchdog.events.FileSystemEventHandler):
 
     def on_modified(self, event):
-        print(f"Detected modification of inputs at {self.input_params_path}")
+        print(
+            f"Detected modification of inputs at {self.input_params_path}")
         process_inputs(self.input_params_path, self.output_scores_path)
 
     def on_created(self, event):
         print(f"Detected creation of inputs at {self.input_params_path}")
         process_inputs(self.input_params_path, self.output_scores_path)
+'''
+
+'''
+    def watch_master_files(self):
+        input_handler = InputHandler()
+        input_handler.input_params_path = self.master_file_path
+        input_handler.output_scores_path = self.engine_file_path
+        observer = watchdog.observers.Observer()
+
+        print(f"Creating observer for {input_handler.input_params_path}")
+        observer.schedule(
+            input_handler,
+            path=input_handler.input_params_path,
+            recursive=True)
+
+        print("Starting observer")
+        observer.start()
+
+        while True:
+            print(
+                "Waiting for input param file changes at "
+                f"{input_handler.input_params_path}",
+                flush=True)
+            time.sleep(10)
+
+        print("Stopping observer")
+        observer.stop()
+
+        print("Joining observer")
+        observer.join
+'''
 
 
 def process_inputs(input_params_path, output_scores_path):
