@@ -33,7 +33,7 @@ class EvalEngine:
         self.engine_file_path = self.output1_dir / 'engine.json'
         self.status = 'Ready'
 
-    def start(self):
+    def start(self) -> None:
         """Start engine"""
 
         print(f"Starting engine {self.id}")
@@ -44,7 +44,7 @@ class EvalEngine:
 
         self.watch_master_file()
 
-    def create_engine_file(self):
+    def create_engine_file(self) -> None:
         """Create engine file"""
 
         engine_dict = {
@@ -55,11 +55,13 @@ class EvalEngine:
         with open(self.engine_file_path, 'w') as engine_file:
             json.dump(engine_dict, engine_file, indent=2)
 
-    def read_master_dict(self):
+    def read_master_dict(self) -> dict:
         with open(self.master_file_path) as master_file:
             master_dict = json.load(master_file)
 
-    def watch_master_file(self):
+        return master_dict
+
+    def watch_master_file(self) -> None:
 
         while True:
             print(f'Engine {self.id}: Checking for master file at '
