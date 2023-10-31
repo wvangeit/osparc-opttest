@@ -9,36 +9,72 @@ import watchdog
 import watchdog.events
 import watchdog.observers
 
+import uuid
+
 
 def main():
-    input2_dir = pathlib.Path(
-        os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
-    output1_dir = pathlib.Path(
-        os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
-    print(f'Input 2 directory: {input2_dir}')
-    print(f'Output 1 directory: {output1_dir}')
+    """Main"""
 
-    print("Files in input: ")
-    for path in input2_dir.rglob("*"):
-        print(path.resolve(), flush=True)
+    engine = EvalEngine()
+    engine.start()
 
-    input_params_path = input2_dir / 'params.json'
-    output_scores_path = output1_dir / 'scores.json'
 
+class EvalEngine:
+
+    def __init__(self):
+        """Constructor"""
+
+        self.id = uuid.uuid4()
+        self.output1_dir = pathlib.Path(
+            os.environ["DY_SIDECAR_PATH_OUTPUTS"]) / pathlib.Path('output_1')
+        self.input2_dir = pathlib.Path(
+            os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
+        self.master_file_path = self.input2_dir / 'master.json'
+        self.engine_file_path = self.output1_dir / 'engine.json'
+        self.status = 'Ready'
+
+    def start(self):
+        """Start engine"""
+
+        print(f"Starting engine {self.id}")
+        print(f'Input 2 directory: {self.input2_dir}')
+        print(f'Output 1 directory: {self.output1_dir}')
+
+        self.create_engine_file()
+
+        # watch_master_file()
+
+    def create_engine_file(self):
+        """Create engine file"""
+
+        engine_dict = {
+            'id': str(self.id),
+            'status': self.status
+        }
+
+        with open(self.engine_file_path, 'w') as engine_file:
+            json.dump(engine_dict, engine_file, indent=2)
+
+
+def watch_master_file(self):
     input_handler = InputHandler()
-    input_handler.input_params_path = input_params_path
-    input_handler.output_scores_path = output_scores_path
+    input_handler.input_params_path = self.master_file_path
+    input_handler.output_scores_path = self.engine_file_path
     observer = watchdog.observers.Observer()
 
-    print(f"Creating observer for {input_params_path}")
-    observer.schedule(input_handler, path=input_params_path, recursive=True)
+    print(f"Creating observer for {input_handler.input_params_path}")
+    observer.schedule(
+        input_handler,
+        path=input_handler.input_params_path,
+        recursive=True)
 
     print("Starting observer")
     observer.start()
 
     while True:
         print(
-            f"Waiting for input param file changes at{input_params_path}",
+            "Waiting for input param file changes at "
+            f"{input_handler.input_params_path}",
             flush=True)
         time.sleep(10)
 
@@ -47,13 +83,6 @@ def main():
 
     print("Joining observer")
     observer.join
-
-    '''
-    try:
-    except KeyboardInterrupt:
-        observer.stop()
-    '''
-    # observer.join()
 
 
 class InputHandler(watchdog.events.FileSystemEventHandler):
