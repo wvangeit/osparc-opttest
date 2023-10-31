@@ -82,7 +82,8 @@ class EvalEngine:
                         f"Engine {self.id}: Received task: {task_dict}",
                         flush=True)
 
-                    if task_dict['command'] == 'run':
+                    if task_dict['command'] == 'run' and \
+                            self.status == 'ready':
                         result = run_eval(task_dict['payload'])
                         print(
                             f"Engine {self.id}: Calculated score: {result}",
