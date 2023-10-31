@@ -2,14 +2,9 @@ import os
 import json
 import pathlib
 import time
+import uuid
 
 import bluepyopt.ephys as ephys
-
-import watchdog
-import watchdog.events
-import watchdog.observers
-
-import uuid
 
 
 def main():
@@ -31,7 +26,7 @@ class EvalEngine:
             os.environ["DY_SIDECAR_PATH_INPUTS"]) / pathlib.Path('input_2')
         self.master_file_path = self.input2_dir / 'master.json'
         self.engine_file_path = self.output1_dir / 'engine.json'
-        self.status = 'Ready'
+        self.status = 'ready'
 
     def start(self) -> None:
         """Start engine"""
@@ -55,6 +50,19 @@ class EvalEngine:
         with open(self.engine_file_path, 'w') as engine_file:
             json.dump(engine_dict, engine_file, indent=2)
 
+    def submit_result(self, result) -> None:
+        """Create engine file"""
+
+        self.status = 'submitted'
+        engine_dict = {
+            'id': self.id,
+            'status': self.status,
+            'payload': result
+        }
+
+        with open(self.engine_file_path, 'w') as engine_file:
+            json.dump(engine_dict, engine_file, indent=2)
+
     def read_master_dict(self) -> dict:
         with open(self.master_file_path) as master_file:
             master_dict = json.load(master_file)
@@ -70,7 +78,23 @@ class EvalEngine:
                 master_dict = self.read_master_dict()
                 if self.id in master_dict['engines']:
                     task_dict = master_dict['engines'][self.id]['task']
-                    print(f"Engine {self.id}: Received task: {task_dict}")
+                    print(
+                        f"Engine {self.id}: Received task: {task_dict}",
+                        flush=True)
+
+                    if task_dict['command'] == 'run':
+                        result = run_eval(task_dict['payload'])
+                        print(
+                            f"Engine {self.id}: Calculated score: {result}",
+                            flush=True)
+                        self.submit_result(result)
+                    elif task_dict['command'] == 'get ready':
+                        print(
+                            f"Engine {self.id}: Getting ready",
+                            flush=True)
+                        self.status = 'ready'
+                        self.create_engine_file()
+
                 else:
                     print(f"Engine {self.id}: Didn't find any tasks for me")
 
