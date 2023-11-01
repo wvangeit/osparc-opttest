@@ -50,12 +50,13 @@ class EvalEngine:
         with open(self.engine_file_path, 'w') as engine_file:
             json.dump(engine_dict, engine_file, indent=2)
 
-    def submit_result(self, result) -> None:
+    def submit_result(self, task_id, result) -> None:
         """Create engine file"""
 
         self.status = 'submitted'
         engine_dict = {
             'id': self.id,
+            'task_id': task_id,
             'status': self.status,
             'payload': result
         }
@@ -88,7 +89,7 @@ class EvalEngine:
                         print(
                             f"Engine {self.id}: Calculated score: {result}",
                             flush=True)
-                        self.submit_result(result)
+                        self.submit_result(task_dict['task_id'], result)
                     elif task_dict['command'] == 'get ready':
                         print(
                             f"Engine {self.id}: Getting ready",
