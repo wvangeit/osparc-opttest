@@ -78,24 +78,26 @@ class EvalEngine:
             if self.master_file_path.exists():
                 master_dict = self.read_master_dict()
                 if self.id in master_dict['engines']:
-                    task_dict = master_dict['engines'][self.id]['task']
-                    print(
-                        f"Engine {self.id}: Received task: {task_dict}",
-                        flush=True)
+                    if 'task' in master_dict['engines'][self.id]:
+                        task_dict = master_dict['engines'][self.id]['task']
+                        print(
+                            f"Engine {self.id}: Received task: {task_dict}",
+                            flush=True)
 
-                    if task_dict['command'] == 'run' and \
-                            self.status == 'ready':
-                        result = run_eval(task_dict['payload'])
-                        print(
-                            f"Engine {self.id}: Calculated score: {result}",
-                            flush=True)
-                        self.submit_result(task_dict['task_id'], result)
-                    elif task_dict['command'] == 'get ready':
-                        print(
-                            f"Engine {self.id}: Getting ready",
-                            flush=True)
-                        self.status = 'ready'
-                        self.create_engine_file()
+                        if task_dict['command'] == 'run' and \
+                                self.status == 'ready':
+                            result = run_eval(task_dict['payload'])
+                            print(
+                                f"Engine {self.id}: "
+                                "Calculated score: {result}",
+                                flush=True)
+                            self.submit_result(task_dict['task_id'], result)
+                        elif task_dict['command'] == 'get ready':
+                            print(
+                                f"Engine {self.id}: Getting ready",
+                                flush=True)
+                            self.status = 'ready'
+                            self.create_engine_file()
 
                 else:
                     print(f"Engine {self.id}: Didn't find any tasks for me")
